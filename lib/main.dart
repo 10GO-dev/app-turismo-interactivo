@@ -1,7 +1,8 @@
-import 'package:app_final/session_managment/session.dart';
+import 'package:app_final/geolocation/gelocation.dart';
 import 'package:flutter/material.dart';
 
-void main() {
+void main() async {
+
   runApp(MyApp());
 }
 
@@ -14,7 +15,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: SessionManagementScreen(),
+      home: MapScreen(),
     );
   }
 }
