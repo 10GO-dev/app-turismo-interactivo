@@ -9,8 +9,8 @@ class SessionManagementScreen extends StatefulWidget {
 class _SessionManagementScreenState extends State<SessionManagementScreen> {
   List<Map<String, String>> _users = [];
 
-  TextEditingController _emailController = TextEditingController();
-  TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
 
   Map<String, String>? _currentUser;
 
