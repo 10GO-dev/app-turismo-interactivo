@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Guía de Turismo',
       theme: lightTheme(context),
-      home: const SearchLocationScreen(),
+      home: MapScreen(),
     );
   }
 }
