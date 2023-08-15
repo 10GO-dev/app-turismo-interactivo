@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:google_maps_webservice/places.dart' hide Location;
 import 'package:location/location.dart';
+
 
 
 class MapScreen extends StatefulWidget {
@@ -12,13 +14,33 @@ class _MapScreenState extends State<MapScreen> {
   GoogleMapController? _mapController;
   final TextEditingController _searchController = TextEditingController();
   Location _location = Location();
-
-  LatLng _initialCameraPosition = LatLng(0, 0);
+  LatLng _initialCameraPosition = LatLng(18.495957435360776, -69.93450931777639);
+  late GoogleMapsPlaces _places;
+  List<Marker> _markers = [];
 
   @override
   void initState() {
     super.initState();
-    _getLocation();
+    _initializeMap();
+    _places = GoogleMapsPlaces(apiKey: 'AIzaSyCfL8qyelx3t3P1M7VJhwiOQJ4DrZ0qeCs');
+
+  }
+
+  Future<void> _searchPlaces(String query) async {
+    final response = await _places.searchByText(query);
+    
+  }
+
+  Future<void> _initializeMap() async {
+    await _getLocation();
+    _mapController!.animateCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: _initialCameraPosition,
+          zoom: 15,
+        ),
+      ),
+    );
   }
 
   Future<void> _getLocation() async {
@@ -30,7 +52,7 @@ class _MapScreenState extends State<MapScreen> {
 
   void _onMapCreated(GoogleMapController controller) {
     _mapController = controller;
-    _getLocation(); // Aquí obtenemos la ubicación actual al momento de iniciar la aplicación.
+    
   }
 
   @override
@@ -51,13 +73,6 @@ class _MapScreenState extends State<MapScreen> {
             zoom: 15,
           ),
           myLocationEnabled: true,
-          markers: {
-            Marker(
-              markerId: MarkerId('myMarker'),
-              position: _initialCameraPosition,
-              infoWindow: InfoWindow(title: 'Mi Ubicación actual'),
-            ),
-          },
         ), // Reemplaza esto con tu widget de mapa
           Align(
             alignment: Alignment.topCenter,
@@ -84,7 +99,9 @@ class _MapScreenState extends State<MapScreen> {
                       border: InputBorder.none,
                       icon: Icon(Icons.search, color: Colors.green,),
                     ),
-
+                    onChanged: (value) {
+                      _searchPlaces(value);
+                    },
                   ),
             ),
           ),
