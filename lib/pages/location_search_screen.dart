@@ -1,10 +1,13 @@
 import 'package:app_final/components/network_utils.dart';
+import 'package:app_final/config/routes.dart';
 import 'package:app_final/models/autocomplete_prediction.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../components/location_list_tile.dart';
 import '../../constants.dart';
 import '../models/place_auto_complete_response.dart';
+import 'package:app_final/pages/location_service.dart';
 
 class SearchLocationScreen extends StatefulWidget {
   const SearchLocationScreen({Key? key}) : super(key: key);
@@ -14,14 +17,26 @@ class SearchLocationScreen extends StatefulWidget {
 }
 
 class _SearchLocationScreenState extends State<SearchLocationScreen> {
-
+  LocationService locationService = LocationService();
   List<AutoCompletePrediction> placePredictions = [];
 
+
+  void getPlaceDetails(String placeId) async {
+    var place = await locationService.getPlace(placeId);
+    final double lat = place['result']['geometry']['location']['lat'];
+    final double lng = place['result']['geometry']['location']['lng'];
+      print("lat: $lat, lng: $lng");
+  }
+
   void placeAutoComplete(String query) async {
+
+    LatLng location = await locationService.getCurrentLocation();
+    
     Uri uri = Uri.https(
       "maps.googleapis.com",
       'maps/api/place/autocomplete/json',
       {"input": query,
+      "locationbias": "circle:3000@${location.latitude},${location.longitude}",
       "key": apiKey,}
     );
 
@@ -59,7 +74,9 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
           CircleAvatar(
             backgroundColor: secondaryColor10LightTheme,
             child: IconButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.popAndPushNamed(context, AppRoutes.home);
+              },
               icon: const Icon(Icons.close, color: Colors.black),
             ),
           ),
@@ -127,7 +144,9 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
           ListView.builder(
             itemCount: placePredictions.length,
             itemBuilder: (context, index) => LocationListTile(
-            press: () {},
+            press: () {
+              getPlaceDetails(placePredictions[index].placeId!);
+            },
             location: placePredictions[index].description!,
             )
           ),

@@ -1,5 +1,6 @@
-import 'package:app_final/geolocation/gelocation.dart';
-import 'package:app_final/geolocation/location_search_screen.dart';
+import 'package:app_final/config/routes.dart';
+import 'package:app_final/pages/gelocation.dart';
+import 'package:app_final/pages/location_search_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:app_final/theme.dart';
 
@@ -17,7 +18,10 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Guía de Turismo',
       theme: lightTheme(context),
-      home: MapScreen(),
+      routes: {
+        AppRoutes.searchLocation: (context) => const SearchLocationScreen(),
+        AppRoutes.home: (context) => const MapScreen(),
+      },
     );
   }
 }
