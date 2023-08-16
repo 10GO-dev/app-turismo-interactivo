@@ -20,35 +20,34 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
   LocationService locationService = LocationService();
   List<AutoCompletePrediction> placePredictions = [];
 
-
   void getPlaceDetails(String placeId) async {
     var place = await locationService.getPlace(placeId);
-    final double lat = place['result']['geometry']['location']['lat'];
-    final double lng = place['result']['geometry']['location']['lng'];
-      print("lat: $lat, lng: $lng");
+    final double lat = place['geometry']['location']['lat'];
+    final double lng = place['geometry']['location']['lng'];
+    print("lat: $lat, lng: $lng");
   }
 
   void placeAutoComplete(String query) async {
-
     LatLng location = await locationService.getCurrentLocation();
-    
-    Uri uri = Uri.https(
-      "maps.googleapis.com",
-      'maps/api/place/autocomplete/json',
-      {"input": query,
+
+    Uri uri =
+        Uri.https("maps.googleapis.com", 'maps/api/place/autocomplete/json', {
+      "input": query,
       "locationbias": "circle:3000@${location.latitude},${location.longitude}",
-      "key": apiKey,}
-    );
+      "key": apiKey,
+    });
 
     String? response = await NetworkUtility.fetchUrl(uri);
-    if( response != null ){
-      PlaceAutocompleteResponse result = PlaceAutocompleteResponse.parseAutocompleteResult(response);
-      if(result.predictions != null){
+    if (response != null) {
+      PlaceAutocompleteResponse result =
+          PlaceAutocompleteResponse.parseAutocompleteResult(response);
+      if (result.predictions != null) {
         setState(() {
           placePredictions = result.predictions!;
         });
+      }
     }
-  }}
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +61,8 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
               "assets/icons/location.svg",
               height: 16,
               width: 16,
-              colorFilter:const ColorFilter.mode(secondaryColor40LightTheme, BlendMode.srcIn),
+              colorFilter: const ColorFilter.mode(
+                  secondaryColor40LightTheme, BlendMode.srcIn),
             ),
           ),
         ),
@@ -90,7 +90,7 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
               padding: const EdgeInsets.all(defaultPadding),
               child: TextFormField(
                 onChanged: (value) {
-                  if(value.isNotEmpty){
+                  if (value.isNotEmpty) {
                     placeAutoComplete(value);
                   }
                 },
@@ -101,7 +101,8 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     child: SvgPicture.asset(
                       "assets/icons/location_pin.svg",
-                      colorFilter: const ColorFilter.mode(secondaryColor40LightTheme, BlendMode.srcIn),
+                      colorFilter: const ColorFilter.mode(
+                          secondaryColor40LightTheme, BlendMode.srcIn),
                     ),
                   ),
                 ),
@@ -116,9 +117,7 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
           Padding(
             padding: const EdgeInsets.all(defaultPadding),
             child: ElevatedButton.icon(
-              onPressed: () {
-                
-              },
+              onPressed: () {},
               icon: SvgPicture.asset(
                 "assets/icons/location.svg",
                 height: 16,
@@ -140,19 +139,20 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
             thickness: 4,
             color: secondaryColor5LightTheme,
           ),
-          Expanded(child: 
-          ListView.builder(
-            itemCount: placePredictions.length,
-            itemBuilder: (context, index) => LocationListTile(
-            press: () {
-              getPlaceDetails(placePredictions[index].placeId!);
-            },
-            location: placePredictions[index].description!,
-            )
-          ),
+          Expanded(
+            child: ListView.builder(
+                itemCount: placePredictions.length,
+                itemBuilder: (context, index) => LocationListTile(
+                      press: () {
+                        //getPlaceDetails(placePredictions[index].placeId!);
+                        Navigator.pushNamed(context, AppRoutes.home,
+                            arguments: placePredictions[index].placeId!);
+                      },
+                      location: placePredictions[index].description!,
+                    )),
           )
         ],
       ),
     );
-}
+  }
 }
