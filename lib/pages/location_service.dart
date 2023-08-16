@@ -19,7 +19,7 @@ class LocationService {
     print(location.latitude.toString() + " " + location.longitude.toString());
     Uri uri = Uri.https("maps.googleapis.com", 'maps/api/place/details/json', {
       "place_id": input,
-      "fields": "name,formatted_address,geometry",
+      "fields": "name,formatted_address,geometry,photos,reviews",
       "key": apiKey,
     });
     var response = await http.get(uri);
