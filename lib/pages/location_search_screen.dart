@@ -20,13 +20,6 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
   LocationService locationService = LocationService();
   List<AutoCompletePrediction> placePredictions = [];
 
-  void getPlaceDetails(String placeId) async {
-    var place = await locationService.getPlace(placeId);
-    final double lat = place['geometry']['location']['lat'];
-    final double lng = place['geometry']['location']['lng'];
-    print("lat: $lat, lng: $lng");
-  }
-
   void placeAutoComplete(String query) async {
     LatLng location = await locationService.getCurrentLocation();
 
@@ -75,9 +68,9 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
             backgroundColor: secondaryColor10LightTheme,
             child: IconButton(
               onPressed: () {
-                Navigator.popAndPushNamed(context, AppRoutes.home);
+                Navigator.pop(context, AppRoutes.home);
               },
-              icon: const Icon(Icons.close, color: Colors.black),
+              icon: const Icon(Icons.close, color: Colors.green),
             ),
           ),
           const SizedBox(width: defaultPadding)
@@ -114,38 +107,13 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
             thickness: 4,
             color: secondaryColor5LightTheme,
           ),
-          Padding(
-            padding: const EdgeInsets.all(defaultPadding),
-            child: ElevatedButton.icon(
-              onPressed: () {},
-              icon: SvgPicture.asset(
-                "assets/icons/location.svg",
-                height: 16,
-              ),
-              label: const Text("Use my Current Location"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: secondaryColor10LightTheme,
-                foregroundColor: textColorLightTheme,
-                elevation: 0,
-                fixedSize: const Size(double.infinity, 40),
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
-                ),
-              ),
-            ),
-          ),
-          const Divider(
-            height: 4,
-            thickness: 4,
-            color: secondaryColor5LightTheme,
-          ),
           Expanded(
             child: ListView.builder(
                 itemCount: placePredictions.length,
                 itemBuilder: (context, index) => LocationListTile(
                       press: () {
                         //getPlaceDetails(placePredictions[index].placeId!);
-                        Navigator.pushNamed(context, AppRoutes.home,
+                        Navigator.pushReplacementNamed(context, AppRoutes.home,
                             arguments: placePredictions[index].placeId!);
                       },
                       location: placePredictions[index].description!,

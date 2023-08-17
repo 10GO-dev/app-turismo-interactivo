@@ -1,6 +1,5 @@
 import 'package:app_final/config/routes.dart';
 import 'package:app_final/constants.dart';
-import 'package:app_final/pages/location_search_screen.dart';
 import 'package:custom_info_window/custom_info_window.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -17,26 +16,20 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  CustomInfoWindowController _customInfoWindowController =
+  final CustomInfoWindowController _customInfoWindowController =
       CustomInfoWindowController();
   GoogleMapController? _mapController;
-  LatLng _initialCameraPosition =
-      LatLng(18.495957435360776, -69.93450931777639);
+
+  LatLng _initialCameraPosition = LatLng(18.495957435360776, -69.93450931777639);
   Location? lg;
-  Marker _marker = Marker(
-    markerId: const MarkerId('marker_id'),
-    position: const LatLng(18.495957435360776, -69.93450931777639),
-    infoWindow: const InfoWindow(
-      title: 'Santo Domingo',
-      snippet: 'Capital de la República Dominicana',
-    ),
-    icon: BitmapDescriptor.defaultMarker,
-  );
+  Marker? _marker;
+  
+  Set<Marker> _markers = Set<Marker>();
+  
 
   @override
   void initState() {
     super.initState();
-    //initialize();
   }
 
   @override
@@ -88,7 +81,7 @@ class _MapScreenState extends State<MapScreen> {
       String name, String address, String img, int average) {
     List<Icon> stars = [];
     for (var i = 0; i < average; i++) {
-      stars.add(Icon(
+      stars.add( const Icon(
         Icons.star,
         color: Colors.amber,
       ));
@@ -114,11 +107,11 @@ class _MapScreenState extends State<MapScreen> {
                   fit: BoxFit.fitWidth,
                   filterQuality: FilterQuality.high,
                 ),
-                borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                borderRadius: const BorderRadius.all(Radius.circular(10.0)),
                 color: Colors.white),
           ),
           Padding(
-            padding: EdgeInsets.only(top: 10, left: 10, right: 10),
+            padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
             child: Row(
               children: [
                 SizedBox(
@@ -128,11 +121,11 @@ class _MapScreenState extends State<MapScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.fade,
                     softWrap: false,
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
                 const Spacer(),
-                Icon(Icons.save)
+                 const Icon(Icons.save)
               ],
             ),
           ),
@@ -157,7 +150,7 @@ class _MapScreenState extends State<MapScreen> {
     if (placeId != null) {
       getPlaceDetails(placeId as String).then((lg) {
         setState(() {
-          this._marker = Marker(
+          _marker = Marker(
             markerId: const MarkerId('marker_id'),
             position: LatLng(lg.latitude, lg.longitude),
             onTap: () {
@@ -170,7 +163,7 @@ class _MapScreenState extends State<MapScreen> {
         });
 
         setState(() {
-          this._initialCameraPosition = LatLng(lg.latitude, lg.longitude);
+          _initialCameraPosition = LatLng(lg.latitude, lg.longitude);
         });
 
         _customInfoWindowController.googleMapController!
@@ -188,8 +181,18 @@ class _MapScreenState extends State<MapScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.green,
+        backgroundColor: secondaryColor40LightTheme,
         title: const Text('UrbanQuest'),
+        actions: [
+          IconButton(onPressed: () => Navigator.pushNamed(context, AppRoutes.searchLocation), icon: const Icon(
+                  Icons.search,
+                  color: Colors.white,
+                  size: 35,
+                ),),
+          IconButton(
+            iconSize: 35,
+            onPressed: () => Navigator.pushNamed(context, AppRoutes.myPlaces), icon: const Icon(Icons.location_history))
+        ]
       ),
       body: Stack(
         children: [
@@ -197,7 +200,7 @@ class _MapScreenState extends State<MapScreen> {
             myLocationButtonEnabled: false,
             zoomControlsEnabled: false,
             onMapCreated: _onMapCreated,
-            markers: {this._marker},
+            markers: _markers,
             onTap: (position) {
               _customInfoWindowController.hideInfoWindow!();
             },
@@ -216,29 +219,13 @@ class _MapScreenState extends State<MapScreen> {
             width: 300,
             offset: 35,
           ),
-          Align(
-            alignment: Alignment.topRight,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: FloatingActionButton(
-                heroTag: "search",
-                backgroundColor: Colors.green[700],
-                child: const Icon(
-                  Icons.search,
-                  color: Colors.white,
-                  size: 30,
-                ),
-                onPressed: () =>
-                    Navigator.pushNamed(context, AppRoutes.searchLocation),
-              ),
-            ),
-          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.green,
         child: const Icon(Icons.location_searching),
         onPressed: () {
+          setCurrentLocation();
           _customInfoWindowController.googleMapController!.animateCamera(
             CameraUpdate.newCameraPosition(
               CameraPosition(
