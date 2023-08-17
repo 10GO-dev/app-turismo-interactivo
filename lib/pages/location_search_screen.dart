@@ -68,7 +68,7 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
             backgroundColor: secondaryColor10LightTheme,
             child: IconButton(
               onPressed: () {
-                Navigator.pop(context, AppRoutes.home);
+                Navigator.pop(context);
               },
               icon: const Icon(Icons.close, color: Colors.green),
             ),
@@ -113,8 +113,7 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
                 itemBuilder: (context, index) => LocationListTile(
                       press: () {
                         //getPlaceDetails(placePredictions[index].placeId!);
-                        Navigator.pushReplacementNamed(context, AppRoutes.home,
-                            arguments: placePredictions[index].placeId!);
+                        Navigator.pop(context, placePredictions[index].placeId!);
                       },
                       location: placePredictions[index].description!,
                     )),

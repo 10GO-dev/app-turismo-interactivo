@@ -14,12 +14,11 @@ class LocationService {
   }
 
   Future<Map<String, dynamic>> getPlace(String input) async {
-    LatLng location = await getCurrentLocation();
 
-    print(location.latitude.toString() + " " + location.longitude.toString());
     Uri uri = Uri.https("maps.googleapis.com", 'maps/api/place/details/json', {
       "place_id": input,
       "fields": "name,formatted_address,geometry,photos,reviews",
+      "language": "ees-419",
       "key": apiKey,
     });
     var response = await http.get(uri);

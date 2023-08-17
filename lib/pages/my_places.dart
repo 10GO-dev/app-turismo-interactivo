@@ -1,11 +1,15 @@
 import 'dart:async';
 
+import 'package:app_final/models/location.dart';
 import 'package:collection/collection.dart';
 import 'package:app_final/components/dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_provider/flutter_provider.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:rx_shared_preferences/rx_shared_preferences.dart';
 import 'package:rxdart_ext/rxdart_ext.dart';
+
+import '../constants.dart';
 
 const key = 'com.hoc.list';
 
@@ -23,7 +27,7 @@ class _MyPlacesScreenState extends State<MyPlacesScreen> {
       .startWith(null)
       .switchMap((_) => context.rxPrefs
           .getStringListStream(key)
-          .map((list) => ViewState.success(list ?? const []))
+          .map((list) => ViewState.success((list ?? []).map((e) => conve).toList()))
           .onErrorReturnWith((e, s) => ViewState.failure(e, s)))
       .debug(identifier: '<<STATE>>', log: debugPrint)
       .publishState(ViewState.loading)
@@ -92,17 +96,11 @@ class _MyPlacesScreenState extends State<MyPlacesScreen> {
           return ListView.builder(
             itemCount: list.length,
             physics: const BouncingScrollPhysics(),
-            itemBuilder: (context, index) {
-              final item = list[index];
-
-              return ListTile(
-                title: Text(item),
-                trailing: IconButton(
-                  icon: const Icon(Icons.remove_circle),
-                  onPressed: () => context.showDialogRemove(item),
-                ),
-              );
-            },
+            itemBuilder: (context, index) => PlaceListTile(
+              press: () => Navigator.of(context).pop(list[index].placeId!),
+              pressDelete: () => context.showDialogRemove(list[index].placeId!), // TODO: remove item
+              name: list[index].name!, 
+            )
           );
         },
       ),
@@ -110,15 +108,6 @@ class _MyPlacesScreenState extends State<MyPlacesScreen> {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Builder(
-            builder: (context) {
-              return FloatingActionButton(
-                onPressed: () => context.showDialogAdd(),
-                tooltip: 'Add a string',
-                child: const Icon(Icons.add),
-              );
-            },
-          ),
           const SizedBox(width: 8),
           FloatingActionButton(
             onPressed: () async {
@@ -149,7 +138,7 @@ extension BuildContextX on BuildContext {
 }
 
 class ViewState {
-  final List<String> items;
+  final List<Place> items;
   final bool isLoading;
   final AsyncError? error;
 
@@ -157,7 +146,7 @@ class ViewState {
 
   const ViewState._(this.items, this.isLoading, this.error);
 
-  ViewState.success(List<String> items) : this._(items, false, null);
+  ViewState.success(List<Place> items) : this._(items, false, null);
 
   ViewState.failure(Object e, StackTrace s)
       : this._([], false, AsyncError(e, s));
@@ -167,7 +156,7 @@ class ViewState {
       identical(this, other) ||
       other is ViewState &&
           runtimeType == other.runtimeType &&
-          const ListEquality<String>().equals(items, other.items) &&
+          const ListEquality<Place>().equals(items, other.items) &&
           isLoading == other.isLoading &&
           error == other.error;
 
@@ -177,4 +166,48 @@ class ViewState {
   @override
   String toString() =>
       'ViewState{items.length: ${items.length}, isLoading: $isLoading, error: $error}';
+}
+
+
+
+
+
+class PlaceListTile extends StatelessWidget {
+  const PlaceListTile({
+    Key? key,
+    required this.name,
+    required this.press,
+    required this.pressDelete,
+  }) : super(key: key);
+
+  final String name;
+  final VoidCallback press;
+  final VoidCallback pressDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        ListTile(
+          onTap: press,
+          horizontalTitleGap: 0,
+          leading: SvgPicture.asset("assets/icons/location_pin.svg", colorFilter: const ColorFilter.mode(secondaryColor40LightTheme, BlendMode.srcIn) ),
+          title: Text(
+            name,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+           trailing: IconButton(
+                  icon: const Icon(Icons.remove_circle),
+                  onPressed: pressDelete,
+                ),
+        ),
+        const Divider(
+          height: 2,
+          thickness: 2,
+          color: secondaryColor5LightTheme,
+        ),
+      ],
+    );
+  }
 }

@@ -1,3 +1,4 @@
+
 import 'package:app_final/config/routes.dart';
 import 'package:app_final/constants.dart';
 import 'package:custom_info_window/custom_info_window.dart';
@@ -6,16 +7,15 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:app_final/pages/location_service.dart';
 import 'package:app_final/models/location.dart';
 
-class MapScreen extends StatefulWidget {
-  const MapScreen({Key? key})
-      : super(
-          key: key,
-        );
+class MapScreen extends StatefulWidget { 
+  const MapScreen({Key? key,})
+      : super(key: key,);
   @override
   State<MapScreen> createState() => _MapScreenState();
 }
 
 class _MapScreenState extends State<MapScreen> {
+  String? placeId; //lugar seleccionado
   final CustomInfoWindowController _customInfoWindowController =
       CustomInfoWindowController();
   GoogleMapController? _mapController;
@@ -32,29 +32,29 @@ class _MapScreenState extends State<MapScreen> {
     super.initState();
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _setLocation();
-  }
+  // @override
+  // void didChangeDependencies() {
+  //   super.didChangeDependencies();
+  // }
 
-  void setCurrentLocation() {
-    LocationService().getCurrentLocation().then((value) {
+  void setCurrentLocation() async{
+    await LocationService().getCurrentLocation().then((value) {
       setState(() {
         _initialCameraPosition = LatLng(value.latitude, value.longitude);
       });
+      _customInfoWindowController.googleMapController!.animateCamera(
+            CameraUpdate.newCameraPosition(
+              CameraPosition(
+                target: _initialCameraPosition,
+                zoom: 15,
+              ),
+            ),
+          );
     });
   }
 
   void initialize() {
     setCurrentLocation();
-    _customInfoWindowController.googleMapController!
-        .moveCamera(CameraUpdate.newCameraPosition(
-      CameraPosition(
-        target: _initialCameraPosition,
-        zoom: 15,
-      ),
-    ));
   }
 
   void _onMapCreated(GoogleMapController controller) {
@@ -68,13 +68,15 @@ class _MapScreenState extends State<MapScreen> {
     final double lng = place['geometry']['location']['lng'];
     var average = 0;
     int counter = 0;
-    for (var element in place["reviews"]) {
-      average += element["rating"] as int;
-      counter++;
+    if(place['reviews'] != null){
+      for (var element in place["reviews"]) {
+        average += element["rating"] as int;
+        counter++;
+      }
     }
 
     return Location(lat, lng, place['name'], place["formatted_address"],
-        place["photos"][0]["photo_reference"], (average ~/ counter));
+        place["photos"][0]["photo_reference"], ((counter> 0)?(average ~/ counter): 0));
   }
 
   Container _createLocationBox(
@@ -125,7 +127,7 @@ class _MapScreenState extends State<MapScreen> {
                   ),
                 ),
                 const Spacer(),
-                 const Icon(Icons.save)
+                 const Icon(Icons.add_location, size: 30, color: Colors.blue,)
               ],
             ),
           ),
@@ -145,8 +147,8 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  void _setLocation() {
-    var placeId = ModalRoute.of(context)!.settings.arguments;
+  void _goToLocation() {
+    _customInfoWindowController.hideInfoWindow!();
     if (placeId != null) {
       getPlaceDetails(placeId as String).then((lg) {
         setState(() {
@@ -161,6 +163,10 @@ class _MapScreenState extends State<MapScreen> {
             icon: BitmapDescriptor.defaultMarker,
           );
         });
+
+        if(!_markers.contains(_marker)){
+          _markers.add(_marker!);
+        }
 
         setState(() {
           _initialCameraPosition = LatLng(lg.latitude, lg.longitude);
@@ -184,7 +190,7 @@ class _MapScreenState extends State<MapScreen> {
         backgroundColor: secondaryColor40LightTheme,
         title: const Text('UrbanQuest'),
         actions: [
-          IconButton(onPressed: () => Navigator.pushNamed(context, AppRoutes.searchLocation), icon: const Icon(
+          IconButton(onPressed: () =>_navigateToSearchLocationScreen(), icon: const Icon(
                   Icons.search,
                   color: Colors.white,
                   size: 35,
@@ -226,16 +232,23 @@ class _MapScreenState extends State<MapScreen> {
         child: const Icon(Icons.location_searching),
         onPressed: () {
           setCurrentLocation();
-          _customInfoWindowController.googleMapController!.animateCamera(
-            CameraUpdate.newCameraPosition(
-              CameraPosition(
-                target: _initialCameraPosition,
-                zoom: 15,
-              ),
-            ),
-          );
         },
       ),
     );
   }
+
+  _navigateToSearchLocationScreen() async {
+    final result = await Navigator.pushNamed(
+      context,
+      AppRoutes.searchLocation,
+    );
+
+    if (result != null) {
+      setState(() {
+        placeId = result as String;
+      });
+      _goToLocation();
+    }
+  } 
+    
 }
